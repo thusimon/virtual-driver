@@ -1,11 +1,13 @@
 import cv2
 import mediapipe as mp
 import time
+from handDetector.DriverDetector import DriverDetector
 
 cap = cv2.VideoCapture(0)
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 mp_draw = mp.solutions.drawing_utils
+driver_detector = DriverDetector()
 
 p_time = 0
 c_time = 0
@@ -13,12 +15,7 @@ c_time = 0
 while True:
   success, img = cap.read()
 
-  img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-  hand_results = hands.process(img_rgb)
-
-  if hand_results.multi_hand_landmarks:
-    for hand_lmk in hand_results.multi_hand_landmarks:
-      mp_draw.draw_landmarks(img, hand_lmk, mp_hands.HAND_CONNECTIONS)
+  driver_detector.getDriverStatus(img)
 
   c_time = time.time()
   fps = 1/(c_time - p_time)
