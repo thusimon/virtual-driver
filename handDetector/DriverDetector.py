@@ -15,9 +15,12 @@ class DriverDetector:
     status = []
     if self.hand_results.multi_hand_landmarks:
       for hand_lmk in self.hand_results.multi_hand_landmarks:
-        self.getHandStatusFromLandmarks(hand_lmk.landmark)
+        status.append(self.getHandStatusFromLandmarks(hand_lmk.landmark))
         if draw:
           mp_draw.draw_landmarks(img, hand_lmk, mp_hands.HAND_CONNECTIONS)
+    # sort status left, right
+    if len(status) > 1:
+      status.sort(key=lambda hand_status: hand_status['hand_front_center'][0])
     return status
 
   def getHandStatusFromLandmarks(self, landmark):
@@ -36,11 +39,20 @@ class DriverDetector:
     #  pinky_pip -> pinky_mcp -> ring_mcp -> middle_mcp
     hand_front_points = [index_mcp, index_pip, middle_pip, ring_pip, pinky_pip, pinky_mcp, ring_mcp, middle_mcp]
     hand_front_points_np = landmark2npXY(hand_front_points)
-    # calculate the center of the hand posistion
+    # calculate the hand height
+    index_front_mean = np.mean([hand_front_points_np[0], hand_front_points_np[1]], axis=0)
+    pinky_front_mean = np.mean([hand_front_points_np[4], hand_front_points_np[5]], axis=0)
+    hand_front_length = np.linalg.norm(index_front_mean-pinky_front_mean)
+    # calculate the center of the hand position
     hand_front_center = np.mean(hand_front_points_np, axis=0)
     # calcuate the hand front area
     hand_front_area = cv2.contourArea(hand_front_points_np)
     # calculate the thumb length
-    thumb_points = landmark2npXY([thumb_mcp, thumb_tip])
-    thumb_length = np.linalg.norm(thumb_points[0]-thumb_points[1])
-    print(hand_front_center, hand_front_area, thumb_length)
+    thumb_points = landmark2npXY([thumb_mcp, thumb_ip, thumb_tip])
+    thumb_length = np.linalg.norm(thumb_points[0]-thumb_points[2])
+    return {
+      'hand_front_center': hand_front_center,
+      'hand_front_length': hand_front_length,
+      'hand_front_area': hand_front_area,
+      'thumb_length': thumb_length
+    }

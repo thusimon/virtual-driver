@@ -2,20 +2,26 @@ import cv2
 import mediapipe as mp
 import time
 from handDetector.DriverDetector import DriverDetector
+from gestureEstimate.DriverEstimate import DriverEstimate
 
 cap = cv2.VideoCapture(0)
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 mp_draw = mp.solutions.drawing_utils
 driver_detector = DriverDetector()
+driver_estimate = DriverEstimate()
 
 p_time = 0
 c_time = 0
 
 while True:
   success, img = cap.read()
-
-  driver_detector.getDriverStatus(img)
+  # flip horizontally so that the left and right hand is in the right place
+  img = cv2.flip(img, 1)
+  status = driver_detector.getDriverStatus(img)
+  driver_estimate.add_status(status)
+  thumb_up = driver_estimate.isBothThumbUp()
+  print(thumb_up)
 
   c_time = time.time()
   fps = 1/(c_time - p_time)
