@@ -24,8 +24,8 @@ class DriverDetector:
     return status
 
   def getHandStatusFromLandmarks(self, landmark):
+    wrist = landmark[0]
     thumb_mcp = landmark[2]
-    thumb_ip = landmark[3]
     thumb_tip = landmark[4]
     index_mcp = landmark[5]
     index_pip = landmark[6]
@@ -48,11 +48,15 @@ class DriverDetector:
     # calcuate the hand front area
     hand_front_area = cv2.contourArea(hand_front_points_np)
     # calculate the thumb length
-    thumb_points = landmark2npXY([thumb_mcp, thumb_ip, thumb_tip])
-    thumb_length = np.linalg.norm(thumb_points[0]-thumb_points[2])
+    thumb_points = landmark2npXY([wrist, thumb_mcp, thumb_tip])
+    thumb_length = np.linalg.norm(thumb_points[1]-thumb_points[2])
+    wrist_thumb_vec = thumb_points[0]-thumb_points[1]
+    thumb_tip_vec = thumb_points[1]-thumb_points[2]
+    thumb_wrist_angle = np.dot(wrist_thumb_vec, thumb_tip_vec) / np.linalg.norm(wrist_thumb_vec) / np.linalg.norm(thumb_tip_vec)
     return {
       'hand_front_center': hand_front_center,
       'hand_front_length': hand_front_length,
       'hand_front_area': hand_front_area,
-      'thumb_length': thumb_length
+      'thumb_length': thumb_length,
+      'thumb_wrist_angle': thumb_wrist_angle
     }

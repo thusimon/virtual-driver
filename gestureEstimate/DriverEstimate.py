@@ -1,9 +1,8 @@
 import numpy as np
 
 class DriverEstimate:
-  def __init__(self, size = 4) -> None:
+  def __init__(self, size = 3) -> None:
     self.size = size
-    self.half_size = int(size / 2)
     self.left_status = []
     self.right_status = []
 
@@ -47,11 +46,10 @@ class DriverEstimate:
     else:
       # non stable
       return -1
-  
+
   def isThumbUp(self, status):
-    hand_length_mean = np.mean([s['hand_front_length'] for s in status])
-    thumb_height_mean = np.mean([s['thumb_length'] for s in status])
-    return thumb_height_mean > 0.4 * hand_length_mean
+    wrist_thumb_angle = np.mean([s['thumb_wrist_angle'] for s in status])
+    return wrist_thumb_angle > 0.9
 
   def isBothThumbUp(self):
     if self.getHandNumber() != 0b11:
