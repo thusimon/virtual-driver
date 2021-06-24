@@ -20,13 +20,13 @@ while True:
   img = cv2.flip(img, 1)
   status = driver_detector.getDriverStatus(img)
   driver_estimate.add_status(status)
-  thumb_up = driver_estimate.isBothThumbUp()
-  print(thumb_up)
+  estimate = driver_estimate.getEstimate()
+  print(estimate)
 
   c_time = time.time()
   fps = 1/(c_time - p_time)
   p_time = c_time
-  cv2.putText(img, str(int(fps)), (10,70), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 1 , cv2.LINE_AA)
+  cv2.putText(img, str(int(fps)), (6,40), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 1 , cv2.LINE_AA)
   
   cv2.imshow('Hand Capture', img)
   

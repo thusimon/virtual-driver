@@ -3,7 +3,7 @@ import numpy as np
 import mediapipe as mp
 mp_draw = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
-from utils.geo import landmark2npXY
+from utils.geometry import landmark2npXY, normalizeDot
 
 class DriverDetector:
   def __init__(self, static_image_mode=True, max_num_hands=2, min_detection_confidence=0.5, min_tracking_confidence=0.5) -> None:
@@ -52,7 +52,7 @@ class DriverDetector:
     thumb_length = np.linalg.norm(thumb_points[1]-thumb_points[2])
     wrist_thumb_vec = thumb_points[0]-thumb_points[1]
     thumb_tip_vec = thumb_points[1]-thumb_points[2]
-    thumb_wrist_angle = np.dot(wrist_thumb_vec, thumb_tip_vec) / np.linalg.norm(wrist_thumb_vec) / np.linalg.norm(thumb_tip_vec)
+    thumb_wrist_angle = normalizeDot(wrist_thumb_vec, thumb_tip_vec)
     return {
       'hand_front_center': hand_front_center,
       'hand_front_length': hand_front_length,

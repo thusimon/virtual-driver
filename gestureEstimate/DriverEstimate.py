@@ -1,10 +1,12 @@
 import numpy as np
+from utils.geometry import angleInVecs
 
 class DriverEstimate:
   def __init__(self, size = 3) -> None:
     self.size = size
     self.left_status = []
     self.right_status = []
+    self.two_hands_status = 0b00
 
   def add_status(self, hands_status):
     if len(hands_status) == 0:
@@ -33,25 +35,49 @@ class DriverEstimate:
     right_hand_number = len(list(filter(lambda s: s != None, self.right_status)))
     if left_hand_number == self.size and right_hand_number == self.size:
       # stable two hands
-      return 0b11
+      self.two_hands_status = 0b11
     elif left_hand_number == self.size and right_hand_number == 0:
       # stable only left hand
-      return 0b10
+      self.two_hands_status = 0b10
     elif left_hand_number == 0 and right_hand_number == self.size:
       # stable only right hand
-      return 0b01
+      self.two_hands_status = 0b01
     elif left_hand_number == 0 and right_hand_number == 0:
       # stable no hand
-      return 0b00
+      self.two_hands_status = 0b00
     else:
       # non stable
-      return -1
+      self.two_hands_status = -1
 
   def isThumbUp(self, status):
     wrist_thumb_angle = np.mean([s['thumb_wrist_angle'] for s in status])
     return wrist_thumb_angle > 0.9
 
   def isBothThumbUp(self):
-    if self.getHandNumber() != 0b11:
+    if self.two_hands_status != 0b11:
       return False
     return self.isThumbUp(self.left_status) and self.isThumbUp(self.right_status)
+
+  def getDirection(self):
+    if self.two_hands_status != 0b11:
+      return 0
+    left_hand_center = np.mean([s['hand_front_center'] for s in self.left_status], axis=0)
+    right_hand_center = np.mean([s['hand_front_center'] for s in self.right_status], axis=0)
+    left_to_right = left_hand_center - right_hand_center
+    horizontal_vec = np.array([1, 0], dtype=np.float32)
+    angle = angleInVecs(horizontal_vec, left_to_right)
+    if left_to_right[1] < 0: #left_to_right is in fourth quadrum
+      return angle
+    else:
+      return -angle
+
+  def getEstimate(self):
+    self.getHandNumber()
+    two_thumb_up = self.isBothThumbUp()
+    direction = self.getDirection()
+    return {
+      'two_hands': self.two_hands_status,
+      'two_thumb_up': two_thumb_up,
+      'direction': direction
+    }
+
